@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kendo Sushi</title>
+    <link href="http://cdn.kendostatic.com/2012.1.229/styles/kendo.common.min.css" rel="stylesheet">
+    <link href="http://cdn.kendostatic.com/2012.1.229/styles/kendo.default.min.css" rel="stylesheet">
+    <link href="http://cdn.kendostatic.com/2012.1.229/styles/kendo.mobile.all.min.css" rel="stylesheet">
+    <script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+    <script src="http://cdn.kendostatic.com/2012.1.229/js/kendo.all.min.js"></script>
+    <link rel="stylesheet" href="content/css/style.css">
+</head>
+<body>
+    <div data-role="layout" data-id="default">
+        <header data-role="header">
+        <div data-role="navbar">
+            <span data-role="view-title"></span>
+            <a class="about-button" data-align="right" href="content/about.html" data-role="button">About</a>
+        </div>
+        </header>
+
+        <footer data-role="footer" data-id="default">
+        <div data-role="tabstrip">
+            <a href="#index" data-icon="home">Home</a>
+            <a href="#menu" data-icon="organize">Our menu</a>
+            <a href="#cart" data-icon="cart">Cart</a>
+            <a href="#account" data-icon="contacts">Account</a>
+        </div>
+        </footer>
+    </div>
+
+    <div data-title="Kendo sushi" data-role="view" id="index" data-url="/" data-layout="default" data-show="showMenuView">
+        <ul
+            id="featured"
+            class="item-list"
+            data-role="listview"
+            data-template="menuTemplate"
+            data-source="featured"
+        ></ul>
+    </div>
+
+    <div data-role="view" id="menu" data-layout="default" data-title="Menu" data-show="showMenuView">
+        <ul
+            id="menuList"
+            class="item-list"
+            data-role="listview"
+            data-template="menuTemplate"
+            data-source="ds"
+        ></ul>
+    </div>
+
+    <div data-role="view" id="cart" data-layout="default" data-title="Cart">
+        <h2 id="total"></h2>
+        <img src="content/images/sad.png" id="empty-icon">
+        <a id="checkout" data-click="checkout" class="red-button" href="#done" data-role="button">Checkout</a>
+        <ul id="cartList" class="item-list"
+            data-template="cartItemTemplate"
+            data-source="cartDataSource"
+            data-role="listview"
+            data-style="inset"
+            ></ul>
+    </div>
+
+    <div data-role="view" id="account" data-layout="default" data-title="My Account">
+        <ul data-role="listview" data-style="inset" data-type="group">
+            <li>
+                Account
+                <ul>
+                    <li>Username<span class="list-item-data">kendoSushi</span></li>
+                    <li>Email<span class="list-item-data">sushi@kendoui.com</span></li>
+                </ul>
+            </li>
+            <li>
+                Notifications
+                <ul>
+                    <li>New products<input type="checkbox" data-role="switch" /></li>
+                    <li>Exclusive promos<input type="checkbox" data-role="switch" checked="checked" /></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div data-role="view" id="done" data-transition="zoom">
+        <header data-role="header"> <div data-role="navbar"> <span data-role="view-title">Done!</span> </div>
+        </header>
+        <div data-role="content" class="km-insetcontent">
+            <img src="content/images/happy.png" id="done-icon">
+            <h2>Thanks for shopping!</h2>
+            <h3>Your sushi is on the way.</h3>
+            <a id="done-button" href="#cart" data-role="button">Done</a>
+        </div>
+    </div>
+
+    <div data-role="view" id="details" data-transition="slide" data-layout="default" data-show="showDetailsView">
+        <header data-role="header">
+        <div data-role="navbar">
+            <a data-role="backbutton" data-align="left">Back</a>
+            <span data-role="view-title">Item</span>
+        </div>
+        </header>
+
+        <div data-role="content">
+        </div>
+    </div>
+
+    <script id="menuTemplate" type="text/x-kendo-template">
+        <a data-role="button"
+            data-click="addToCartFromList"
+            data-item-id="#:id#"
+            href="\\#">#:kendo.toString(price, "c")#</a>
+        <a
+            class="details-link"
+            data-role="listview-link"
+            href="\#details?id=#:id#">
+            <img src="content/images/75/#:image#" />
+            <h2>#:name#</h2>
+            <span class="added"#= cartDataSource.get(id) ? "" : 'style="display: none"' #>Item added to cart</span>
+        </a>
+    </script>
+
+    <script id="cartItemTemplate" type="text/x-kendo-template">
+        <a
+            class="red-button"
+            data-click="removeItemFromList"
+            data-item-id="#:id#"
+            data-role="button"
+            href="\\#">&nbsp;&\\#x2716;&nbsp;</a>
+        <a
+            class="details-link"
+            data-role="listview-link"
+            href="\#details?id=#:id#">
+            <img src="content/images/75/#:image#" />
+            <h2>#:name#</h2>
+            <span class="price">#:kendo.toString(price, "c")#</span>
+        </a>
+    </script>
+
+    <script id="detailTemplate" type="text/x-kendo-template">
+        <aside>
+        <img src="content/images/200/#:image#" />
+        <span class="price">#:kendo.toString(price, "c")#</span>
+        <a data-role="button" data-item-id="#:id#" id="add-to-cart" data-click="addToCartFromDetail">Order</a>
+        </aside>
+        <h2>#:name#</h2>
+        <p>#:description#</p>
+        <span class="added"#= cartDataSource.get(id) ? "" : 'style="display: none"' #>Item added to cart</span>
+    </script>
+
+    <script>
+        var app;
+
+        var schema = {model: {}};
+
+        var ds = kendo.data.DataSource.create({
+            schema: schema,
+            transport: { read: { url: "content/menu.js", dataType: "json" } },
+            group: "category",
+            error: function() { console.log(arguments); }
+        });
+
+        var cartDataSource = kendo.data.DataSource.create({
+            data: [],
+            schema: schema,
+            aggregate: [{ field: "price", aggregate: "sum" }]
+        });
+
+        cartDataSource.read();
+
+        cartDataSource.bind("change", function() {
+            var emptyCart = cartDataSource.aggregates().price === undefined;
+
+            if (emptyCart) {
+                $("#total").html(kendo.toString(0, "c"));
+                } else {
+                $("#total").html(kendo.toString(cartDataSource.aggregates().price.sum, "c"));
+            }
+
+            $("#cart .km-content").toggleClass("km-empty", emptyCart);
+        });
+
+        var featured = kendo.data.DataSource.create({
+            schema: schema,
+            filter: {
+                field: "featured",
+                operator: "eq",
+                value: true
+            }
+        });
+
+        ds.bind("change", function() {
+            featured.data(ds.data());
+        });
+
+        ds.fetch();
+
+        var itemDetailsTemplate = kendo.template($("#detailTemplate").text());
+
+        function addToCartFromList(e) {
+            var button = e.button,
+                item = ds.get(button.data("itemId"));
+
+            cartDataSource.add(item);
+            button.parent().find(".added").show();
+
+            e.preventDefault();
+        }
+
+        function addToCartFromDetail(e) {
+            var button = e.button,
+                item = ds.get(button.data("itemId"));
+
+            cartDataSource.add(item);
+            button.parent().parent().find(".added").show();
+        }
+
+        function removeItemFromList(e) {
+            var item = ds.get(e.button.data("itemId"));
+
+            cartDataSource.remove(item);
+            app.view.scroller.reset();
+            e.preventDefault();
+        }
+
+        function checkout() {
+            setTimeout(function () { cartDataSource.data([]) }, 400);
+        }
+
+        function showDetailsView(e) {
+            var view = e.view;
+
+            ds.fetch(function() {
+                item = ds.get(view.params.id);
+                view.scrollerContent.html(itemDetailsTemplate(item));
+                kendo.mobile.init(view.content);
+            });
+        }
+
+        function showMenuView(e) {
+            e.view.content.find(".item-list").data("kendoMobileListView").refresh();
+        }
+
+        app = new kendo.mobile.Application($(document.body), { transition: "slide" });
+    </script>
+</body>
+</html>
