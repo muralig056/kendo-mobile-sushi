@@ -6,7 +6,24 @@
     <link href="http://cdn.kendostatic.com/2012.1.229/styles/kendo.default.min.css" rel="stylesheet">
     <link href="http://cdn.kendostatic.com/2012.1.229/styles/kendo.mobile.all.min.css" rel="stylesheet">
     <script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
-    <script src="http://cdn.kendostatic.com/2012.1.229/js/kendo.all.min.js"></script>
+    <!-- <script src="http://cdn.kendostatic.com/2012.1.229/js/kendo.all.min.js"></script>-->
+    <script src="/kendo-demos/src/js/kendo.core.js"></script>
+    <script src="/kendo-demos/src/js/kendo.fx.js"></script>
+    <script src="/kendo-demos/src/js/kendo.model.js"></script>
+    <script src="/kendo-demos/src/js/kendo.data.js"></script>
+    <script src="/kendo-demos/src/js/kendo.binder.js"></script>
+    <script src="/kendo-demos/src/js/kendo.history.js"></script>
+    <script src="/kendo-demos/src/js/kendo.mobile.core.js"></script>
+    <script src="/kendo-demos/src/js/kendo.mobile.swipe.js"></script>
+    <script src="/kendo-demos/src/js/kendo.mobile.view.js"></script>
+    <script src="/kendo-demos/src/js/kendo.mobile.application.js"></script>
+    <script src="/kendo-demos/src/js/kendo.mobile.button.js"></script>
+    <script src="/kendo-demos/src/js/kendo.mobile.listview.js"></script>
+    <script src="/kendo-demos/src/js/kendo.mobile.navbar.js"></script>
+    <script src="/kendo-demos/src/js/kendo.mobile.scroller.js"></script>
+    <script src="/kendo-demos/src/js/kendo.mobile.switch.js"></script>
+    <script src="/kendo-demos/src/js/kendo.mobile.tabstrip.js"></script>
+
     <link rel="stylesheet" href="content/css/style.css">
 </head>
 <body>
@@ -34,7 +51,7 @@
             class="item-list"
             data-role="listview"
             data-template="menuTemplate"
-            data-source="featured"
+            data-bind="source: featured"
         ></ul>
     </div>
 
@@ -54,7 +71,7 @@
         <a id="checkout" data-click="checkout" class="red-button" href="#done" data-role="button">Checkout</a>
         <ul id="cartList" class="item-list"
             data-template="cartItemTemplate"
-            data-source="cartDataSource"
+            data-bind="source: added"
             data-role="listview"
             data-style="inset"
             ></ul>
@@ -177,6 +194,7 @@
             $("#cart .km-content").toggleClass("km-empty", emptyCart);
         });
 
+        /*
         var featured = kendo.data.DataSource.create({
             schema: schema,
             filter: {
@@ -189,16 +207,44 @@
         ds.bind("change", function() {
             featured.data(ds.data());
         });
+        */
 
         ds.fetch();
 
         var itemDetailsTemplate = kendo.template($("#detailTemplate").text());
 
+        //home view model
+        var homeViewModel = kendo.observable({
+            featured: [],
+            addToCart: function() {
+                alert("add to cart");
+            },
+            init: function() {
+                var that = this;
+                ds.one("change", function() {
+                    that.set("featured", this.data());
+                }).filter({ field: "featured", operator: "eq", value: true});
+            }
+        });
+
+        homeViewModel.init();
+
+        kendo.bind($("#index").children(), homeViewModel, kendo.mobile.ui);
+
+        //cart view model
+        var cartViewModel = kendo.observable({
+            added: []
+        });
+
+        kendo.bind($("#cart").children(), cartViewModel, kendo.mobile.ui);
+
         function addToCartFromList(e) {
             var button = e.button,
                 item = ds.get(button.data("itemId"));
 
-            cartDataSource.add(item);
+            //cartDataSource.add(item);
+            cartViewModel.get("added").push(item);
+
             button.parent().find(".added").show();
 
             e.preventDefault();
@@ -215,7 +261,11 @@
         function removeItemFromList(e) {
             var item = ds.get(e.button.data("itemId"));
 
-            cartDataSource.remove(item);
+            //cartDataSource.remove(item);
+            var added = cartViewModel.get("added");
+
+            added.pop(); //use remove instead of pop
+
             app.view.scroller.reset();
             e.preventDefault();
         }
@@ -235,7 +285,7 @@
         }
 
         function showMenuView(e) {
-            e.view.content.find(".item-list").data("kendoMobileListView").refresh();
+            //e.view.content.find(".item-list").data("kendoMobileListView").refresh();
         }
 
         app = new kendo.mobile.Application($(document.body), { transition: "slide" });
