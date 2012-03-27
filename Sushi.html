@@ -6,15 +6,13 @@
     <link href="http://cdn.kendostatic.com/2012.1.229/styles/kendo.default.min.css" rel="stylesheet">
     <link href="http://cdn.kendostatic.com/2012.1.229/styles/kendo.mobile.all.min.css" rel="stylesheet">
     <script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
-    <!-- <script src="http://cdn.kendostatic.com/2012.1.229/js/kendo.all.min.js"></script>-->
     <script src="/kendo-demos/src/js/kendo.core.js"></script>
     <script src="/kendo-demos/src/js/kendo.fx.js"></script>
+    <script src="/kendo-demos/src/js/kendo.draganddrop.js"></script>
     <script src="/kendo-demos/src/js/kendo.model.js"></script>
     <script src="/kendo-demos/src/js/kendo.data.js"></script>
     <script src="/kendo-demos/src/js/kendo.binder.js"></script>
     <script src="/kendo-demos/src/js/kendo.history.js"></script>
-    <script src="/kendo-demos/src/js/kendo.mobile.core.js"></script>
-    <script src="/kendo-demos/src/js/kendo.mobile.swipe.js"></script>
     <script src="/kendo-demos/src/js/kendo.mobile.view.js"></script>
     <script src="/kendo-demos/src/js/kendo.mobile.application.js"></script>
     <script src="/kendo-demos/src/js/kendo.mobile.button.js"></script>
@@ -45,7 +43,7 @@
         </footer>
     </div>
 
-    <div data-title="Kendo sushi" data-role="view" id="index" data-url="/" data-layout="default" data-show="showMenuView">
+    <div data-title="Kendo sushi" data-role="view" id="index" data-url="/" data-layout="default" data-model="homeViewModel" data-init="initHomeView">
         <ul
             id="featured"
             class="item-list"
@@ -55,26 +53,25 @@
         ></ul>
     </div>
 
-    <div data-role="view" id="menu" data-layout="default" data-title="Menu" data-show="showMenuView">
+    <div data-title="Menu" data-role="view" id="menu" data-layout="default" data-model="menuViewModel" data-init="initMenuView">
         <ul
             id="menuList"
             class="item-list"
             data-role="listview"
             data-template="menuTemplate"
-            data-source="ds"
+            data-bind="source: all"
         ></ul>
     </div>
 
-    <div data-role="view" id="cart" data-layout="default" data-title="Cart">
+    <div data-role="view" id="cart" data-layout="default" data-title="Cart" data-model="cartViewModel" data-show="showCartView">
         <h2 id="total"></h2>
         <img src="content/images/sad.png" id="empty-icon">
-        <a id="checkout" data-click="checkout" class="red-button" href="#done" data-role="button">Checkout</a>
+        <a id="checkout" data-bind="click: checkout" class="red-button" href="#done" data-role="button">Checkout</a>
         <ul id="cartList" class="item-list"
             data-template="cartItemTemplate"
             data-bind="source: added"
             data-role="listview"
-            data-style="inset"
-            ></ul>
+            data-style="inset"></ul>
     </div>
 
     <div data-role="view" id="account" data-layout="default" data-title="My Account">
@@ -107,7 +104,7 @@
         </div>
     </div>
 
-    <div data-role="view" id="details" data-transition="slide" data-layout="default" data-show="showDetailsView">
+    <div data-role="view" id="details" data-transition="slide" data-layout="default" data-model="detailViewModel" data-show="showDetailsView">
         <header data-role="header">
         <div data-role="navbar">
             <a data-role="backbutton" data-align="left">Back</a>
@@ -116,57 +113,81 @@
         </header>
 
         <div data-role="content">
+            <aside>
+            <img data-bind="srcPath: currentItem.image" /> <!-- src="content/images/200/#:image#" -->
+            <span class="price" data-bind="format: currentItem.price"></span></span>
+            <a data-role="button" data-bind="click: addToCart">Order</a>
+            </aside>
+            <h2 data-bind="text: currentItem.name"></h2>
+            <p data-bind="text: currentItem.description"></p>
+            <span class="added" data-bind="innerText: currentItem.ordered, visible: showLabel"></span>
         </div>
     </div>
 
     <script id="menuTemplate" type="text/x-kendo-template">
         <a data-role="button"
-            data-click="addToCartFromList"
-            data-item-id="#:id#"
-            href="\\#">#:kendo.toString(price, "c")#</a>
+            data-bind="click: addToCart"
+            data-item-id="#:id#">#:kendo.toString(price, "c")#</a>
         <a
             class="details-link"
             data-role="listview-link"
             href="\#details?id=#:id#">
             <img src="content/images/75/#:image#" />
             <h2>#:name#</h2>
-            <span class="added"#= cartDataSource.get(id) ? "" : 'style="display: none"' #>Item added to cart</span>
+            <span class="added"#= data.get("ordered") > 0 ? "" : 'style="display: none"' #>Item added to cart #= data.get("ordered") # times.</span>
         </a>
     </script>
 
     <script id="cartItemTemplate" type="text/x-kendo-template">
         <a
             class="red-button"
-            data-click="removeItemFromList"
+            data-bind="click: removeItem"
             data-item-id="#:id#"
-            data-role="button"
-            href="\\#">&nbsp;&\\#x2716;&nbsp;</a>
+            data-role="button">&nbsp;&\\#x2716;&nbsp;</a>
         <a
             class="details-link"
             data-role="listview-link"
             href="\#details?id=#:id#">
             <img src="content/images/75/#:image#" />
             <h2>#:name#</h2>
-            <span class="price">#:kendo.toString(price, "c")#</span>
+            <span class="price">#:kendo.toString(price * data.get("ordered"), "c")#</span>
         </a>
     </script>
 
-    <script id="detailTemplate" type="text/x-kendo-template">
-        <aside>
-        <img src="content/images/200/#:image#" />
-        <span class="price">#:kendo.toString(price, "c")#</span>
-        <a data-role="button" data-item-id="#:id#" id="add-to-cart" data-click="addToCartFromDetail">Order</a>
-        </aside>
-        <h2>#:name#</h2>
-        <p>#:description#</p>
-        <span class="added"#= cartDataSource.get(id) ? "" : 'style="display: none"' #>Item added to cart</span>
-    </script>
-
     <script>
+
+        kendo.data.binders.srcPath = kendo.data.Binder.extend( {
+            refresh: function() {
+                var value = this.bindings["srcPath"].get();
+
+                if (value) {
+                    $(this.element).attr("src", "content/images/200/" + value);
+                }
+            }
+        });
+
+        kendo.data.binders.format = kendo.data.Binder.extend( {
+            refresh: function() {
+                var value = this.bindings["format"].get();
+
+                if (value) {
+                    $(this.element).text(kendo.toString(value, "c"));
+                }
+            }
+        });
+
+        kendo.data.binders.innerText = kendo.data.Binder.extend( {
+            refresh: function() {
+                var value = this.bindings["innerText"].get();
+
+                if (value) {
+                    $(this.element).text("Item added to cart " + value + " times.");
+                }
+            }
+        });
+
         var app;
-
         var schema = {model: {}};
-
         var ds = kendo.data.DataSource.create({
             schema: schema,
             transport: { read: { url: "content/menu.js", dataType: "json" } },
@@ -174,118 +195,126 @@
             error: function() { console.log(arguments); }
         });
 
-        var cartDataSource = kendo.data.DataSource.create({
-            data: [],
-            schema: schema,
-            aggregate: [{ field: "price", aggregate: "sum" }]
-        });
-
-        cartDataSource.read();
-
-        cartDataSource.bind("change", function() {
-            var emptyCart = cartDataSource.aggregates().price === undefined;
-
-            if (emptyCart) {
-                $("#total").html(kendo.toString(0, "c"));
-                } else {
-                $("#total").html(kendo.toString(cartDataSource.aggregates().price.sum, "c"));
-            }
-
-            $("#cart .km-content").toggleClass("km-empty", emptyCart);
-        });
-
-        /*
-        var featured = kendo.data.DataSource.create({
-            schema: schema,
-            filter: {
-                field: "featured",
-                operator: "eq",
-                value: true
-            }
-        });
-
-        ds.bind("change", function() {
-            featured.data(ds.data());
-        });
-        */
-
-        ds.fetch();
-
-        var itemDetailsTemplate = kendo.template($("#detailTemplate").text());
-
         //home view model
         var homeViewModel = kendo.observable({
             featured: [],
-            addToCart: function() {
-                alert("add to cart");
-            },
+            addToCart: addToCart,
             init: function() {
                 var that = this;
+
                 ds.one("change", function() {
                     that.set("featured", this.data());
-                }).filter({ field: "featured", operator: "eq", value: true});
+                })
+                .filter({ field: "featured", operator: "eq", value: true});
             }
         });
 
-        homeViewModel.init();
+        //menu view model
+        var menuViewModel = kendo.observable({
+            all: [],
+            addToCart: addToCart,
+            init: function() {
+                var that = this;
 
-        kendo.bind($("#index").children(), homeViewModel, kendo.mobile.ui);
+                ds.one("change", function() {
+                    that.set("all", this.data());
+                })
+                .filter({});
+            }
+        });
+
+        function addToCart(e) {
+            var item = e.data,
+                ordered = item.get("ordered") || 0,
+                label = $(e.currentTarget).parent().find(".added");
+
+            ordered += 1;
+
+            item.set("ordered", ordered);
+
+            if (ordered === 1) {
+                cartViewModel.added.add(item);
+            }
+
+            if (ordered > 0) {
+                label.show();
+            }
+
+            e.preventDefault();
+        }
 
         //cart view model
         var cartViewModel = kendo.observable({
-            added: []
+            added: new kendo.data.DataSource(),
+            removeItem: function(e) {
+                var item = e.data;
+
+                item.set("ordered", 0);
+                this.added.remove(item);
+
+                app.view.scroller.reset();
+                e.preventDefault();
+            },
+            checkout: function() {
+                var dataSource = this.added,
+                    items = dataSource.data(),
+                    length = items.length,
+                    idx = 0;
+
+                setTimeout(function () {
+                    for (; idx < length; idx++) {
+                        items[0].set("ordered", 0);
+                    }
+
+                    dataSource.data([])
+                }, 400);
+            }
         });
 
-        kendo.bind($("#cart").children(), cartViewModel, kendo.mobile.ui);
+        //detail view model
+        var detailViewModel = kendo.observable({
+            currentItem: null,
+            addToCart: function(e) {
+                var item = this.currentItem,
+                    ordered = item.get("ordered") || 0,
+                    label = $(e.currentTarget).parent().find(".added");
 
-        function addToCartFromList(e) {
-            var button = e.button,
-                item = ds.get(button.data("itemId"));
+                ordered += 1;
 
-            //cartDataSource.add(item);
-            cartViewModel.get("added").push(item);
+                item.set("ordered", ordered);
 
-            button.parent().find(".added").show();
+                if (ordered === 1) {
+                    cartViewModel.added.add(item);
+                }
 
-            e.preventDefault();
+                if (ordered > 0) {
+                    label.show();
+                }
+
+                e.preventDefault();
+            },
+            showLabel: function() {
+                return this.get("currentItem") && this.get("currentItem").get("ordered") > 0;
+            }
+        });
+
+        function initHomeView() {
+            homeViewModel.init();
         }
 
-        function addToCartFromDetail(e) {
-            var button = e.button,
-                item = ds.get(button.data("itemId"));
-
-            cartDataSource.add(item);
-            button.parent().parent().find(".added").show();
-        }
-
-        function removeItemFromList(e) {
-            var item = ds.get(e.button.data("itemId"));
-
-            //cartDataSource.remove(item);
-            var added = cartViewModel.get("added");
-
-            added.pop(); //use remove instead of pop
-
-            app.view.scroller.reset();
-            e.preventDefault();
-        }
-
-        function checkout() {
-            setTimeout(function () { cartDataSource.data([]) }, 400);
+        function initMenuView() {
+            menuViewModel.init();
         }
 
         function showDetailsView(e) {
             var view = e.view;
 
             ds.fetch(function() {
-                item = ds.get(view.params.id);
-                view.scrollerContent.html(itemDetailsTemplate(item));
-                kendo.mobile.init(view.content);
-            });
-        }
+                var model = view.model,
+                    item = ds.get(view.params.id);
 
-        function showMenuView(e) {
-            //e.view.content.find(".item-list").data("kendoMobileListView").refresh();
+                model.set("currentItem", item);
+            });
         }
 
         app = new kendo.mobile.Application($(document.body), { transition: "slide" });
