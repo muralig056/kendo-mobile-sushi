@@ -58,8 +58,9 @@
             id="menuList"
             class="item-list"
             data-role="listview"
+            data-group="category"
             data-template="menuTemplate"
-            data-bind="source: all"
+            data-bind="source: ds"
         ></ul>
     </div>
 
@@ -191,7 +192,6 @@
         var ds = kendo.data.DataSource.create({
             schema: schema,
             transport: { read: { url: "content/menu.js", dataType: "json" } },
-            group: "category",
             error: function() { console.log(arguments); }
         });
 
@@ -203,7 +203,7 @@
                 var that = this;
 
                 ds.one("change", function() {
-                    that.set("featured", this.data());
+                    that.set("featured", this.view());
                 })
                 .filter({ field: "featured", operator: "eq", value: true});
             }
@@ -218,6 +218,7 @@
 
                 ds.one("change", function() {
                     that.set("all", this.data());
+                    that.set("ds", this.data());
                 })
                 .filter({});
             }
