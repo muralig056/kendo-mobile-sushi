@@ -58,9 +58,8 @@
             id="menuList"
             class="item-list"
             data-role="listview"
-            data-group="category"
             data-template="menuTemplate"
-            data-bind="source: ds"
+            data-bind="source: all"
         ></ul>
     </div>
 
@@ -211,16 +210,15 @@
 
         //menu view model
         var menuViewModel = kendo.observable({
-            all: [],
+            all: new kendo.data.DataSource({
+                group: "category"
+            }),
             addToCart: addToCart,
             init: function() {
                 var that = this;
-
                 ds.one("change", function() {
-                    that.set("all", this.data());
-                    that.set("ds", this.data());
-                })
-                .filter({});
+                    that.all.data(this.data());
+                }).fetch();
             }
         });
 
