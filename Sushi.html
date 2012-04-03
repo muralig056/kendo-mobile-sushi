@@ -152,7 +152,7 @@ CTYPE html>
 
         var ds = kendo.data.DataSource.create({
             schema: schema,
-            transport: { read: { url: "content/menu.js", dataType: "json" } },
+            transport: { read: { url: "content/menu.json", dataType: "json" } },
             group: "category",
             error: function() { console.log(arguments); }
         });

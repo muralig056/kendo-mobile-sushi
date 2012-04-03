@@ -46,7 +46,7 @@
     };
     var ds = kendo.data.DataSource.create({
         schema: schema,
-        transport: { read: { url: "content/menu.js", dataType: "json" } }
+        transport: { read: { url: "content/menu.json", dataType: "json" } }
     });
 
     //home view model
