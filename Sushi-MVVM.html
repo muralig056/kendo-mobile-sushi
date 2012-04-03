@@ -134,7 +134,7 @@
             href="\#details?id=#:id#">
             <img src="content/images/75/#:image#" />
             <h2>#:name#</h2>
-            <span class="added"#= data.get("ordered") > 0 ? "" : 'style="display: none"' #>Item added to cart #= data.get("ordered") # times.</span>
+            <span class="added" data-bind="visible: ordered">Item added to cart #= data.ordered # times.</span>
         </a>
     </script>
 
@@ -150,7 +150,7 @@
             href="\#details?id=#:id#">
             <img src="content/images/75/#:image#" />
             <h2>#:name#</h2>
-            <span class="price">#:kendo.toString(price * data.get("ordered"), "c")#</span>
+            <span class="price">#:kendo.toString(price * data.ordered, "c")#</span>
         </a>
     </script>
 
@@ -187,11 +187,23 @@
         });
 
         var app;
-        var schema = {model: {}};
+        var schema = {
+            model: {
+                fields: {
+                    id: {},
+                    name: {},
+                    price: {},
+                    image: {},
+                    category: {},
+                    description: {},
+                    featured: {},
+                    ordered: {}
+                }
+            }
+        };
         var ds = kendo.data.DataSource.create({
             schema: schema,
-            transport: { read: { url: "content/menu.js", dataType: "json" } },
-            error: function() { console.log(arguments); }
+            transport: { read: { url: "content/menu.js", dataType: "json" } }
         });
 
         //home view model
@@ -224,8 +236,7 @@
 
         function addToCart(e) {
             var item = e.data,
-                ordered = item.get("ordered") || 0,
-                label = $(e.currentTarget).parent().find(".added");
+                ordered = item.get("ordered") || 0;
 
             ordered += 1;
 
@@ -233,10 +244,6 @@
 
             if (ordered === 1) {
                 cartViewModel.added.add(item);
-            }
-
-            if (ordered > 0) {
-                label.show();
             }
 
             e.preventDefault();
@@ -267,6 +274,15 @@
 
                     dataSource.data([])
                 }, 400);
+            },
+            showCheckout: function() {
+                var button = $("#checkout");
+
+                if (this.added.data()[0]) {
+                    button.show();
+                } else {
+                    button.hide();
+                }
             }
         });
 
@@ -275,8 +291,7 @@
             currentItem: null,
             addToCart: function(e) {
                 var item = this.currentItem,
-                    ordered = item.get("ordered") || 0,
-                    label = $(e.currentTarget).parent().find(".added");
+                    ordered = item.get("ordered") || 0;
 
                 ordered += 1;
 
@@ -284,10 +299,6 @@
 
                 if (ordered === 1) {
                     cartViewModel.added.add(item);
-                }
-
-                if (ordered > 0) {
-                    label.show();
                 }
 
                 e.preventDefault();
@@ -303,6 +314,10 @@
 
         function initMenuView() {
             menuViewModel.init();
+        }
+
+        function showCartView() {
+            cartViewModel.showCheckout();
         }
 
         function showDetailsView(e) {
